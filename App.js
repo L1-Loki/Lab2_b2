@@ -1,5 +1,4 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -14,10 +13,12 @@ export default function App() {
   const [currentNumber, setCurrentNumber] = useState("");
   const [lastNumber, setLastNumber] = useState("");
 
+  // Button array with sin, cos, tan, cot, and arithmetic operators
   const buttons = [
     "C",
     "DEL",
     "/",
+
     7,
     8,
     9,
@@ -33,55 +34,51 @@ export default function App() {
     0,
     ".",
     "=",
+    "sin",
+    "cos",
+    "tan",
+    "cot",
   ];
 
-  function caulator() {
-    let lastArr = currentNumber[currentNumber.length - 1];
+  // Operators and trigonometric functions arrays
+  const operators = ["+", "-", "*", "/"];
+  const trigFunctions = ["sin", "cos", "tan", "cot"];
 
+  const handleInput = (buttonPressed) => {
+    // Check if the input is a number or decimal and not an operator
+    const isNumberOrDecimal = !isNaN(buttonPressed) || buttonPressed === ".";
+
+    // Check if the last character is an operator or if input is an operator
+    const lastChar = currentNumber.slice(-1);
+    const isLastCharOperator = operators.includes(lastChar);
+    const isInputOperator = operators.includes(buttonPressed);
+
+    // Restrict to 15 characters for numbers only (not including operators)
     if (
-      lastArr === "/" ||
-      lastArr === "*" ||
-      lastArr === "-" ||
-      lastArr === "+" ||
-      lastArr === "."
+      isNumberOrDecimal &&
+      currentNumber.replace(/[\+\-\*\/]/g, "").length >= 20
     ) {
-      setCurrentNumber(currentNumber);
-      return;
-    } else {
-      let result = eval(currentNumber).toString();
-      setCurrentNumber(result);
-      return;
+      if (!isInputOperator) return; // If input is not an operator, restrict it
     }
-  }
-  function handlelnput(buttonpressed) {
-    if (
-      buttonpressed === "+" ||
-      buttonpressed === "-" ||
-      buttonpressed === "*" ||
-      buttonpressed === "/"
-    ) {
-      Vibration.vibrate(35);
-      setCurrentNumber(currentNumber + buttonpressed);
-      return;
-    } else if (
-      buttonpressed === 1 ||
-      buttonpressed === 2 ||
-      buttonpressed === 3 ||
-      buttonpressed === 4 ||
-      buttonpressed === 5 ||
-      buttonpressed === 6 ||
-      buttonpressed === 7 ||
-      buttonpressed === 8 ||
-      buttonpressed === 9 ||
-      buttonpressed === 0 ||
-      buttonpressed === "."
-    ) {
+
+    // Prevent multiple consecutive operators
+    if (isInputOperator && isLastCharOperator) return;
+
+    // Handle operator input
+    if (isInputOperator) {
       Vibration.vibrate(35);
     }
-    switch (buttonpressed) {
+
+    // Handle number and decimal input
+    if (isNumberOrDecimal) {
+      Vibration.vibrate(35);
+    }
+
+    // Handle special button presses
+    switch (buttonPressed) {
       case "DEL":
         Vibration.vibrate(35);
-        setCurrentNumber(currentNumber.substring(0, currentNumber.length - 1));
+        setCurrentNumber(currentNumber.slice(0, -1));
         return;
       case "C":
         Vibration.vibrate(35);
@@ -91,11 +88,50 @@ export default function App() {
       case "=":
         Vibration.vibrate(35);
         setLastNumber(currentNumber + "=");
-        caulator();
+        calculateResult();
         return;
+      case "sin":
+      case "cos":
+      case "tan":
+      case "cot":
+        calculateTrig(buttonPressed);
+        return;
+      default:
+        setCurrentNumber(currentNumber + buttonPressed);
     }
-    setCurrentNumber(currentNumber + buttonpressed);
-  }
+  };
+
+  const calculateTrig = (operation) => {
+    let result = eval(currentNumber);
+    switch (operation) {
+      case "sin":
+        result = Math.sin(result);
+        break;
+      case "cos":
+        result = Math.cos(result);
+        break;
+      case "tan":
+        result = Math.tan(result);
+        break;
+      case "cot":
+        result = 1 / Math.tan(result);
+        break;
+    }
+    setCurrentNumber(result.toString());
+  };
+
+  const calculateResult = () => {
+    let lastChar = currentNumber.slice(-1);
+    if (["+", "-", "*", "/", "."].includes(lastChar)) return;
+
+    try {
+      let result = eval(currentNumber).toString();
+      setCurrentNumber(result);
+    } catch (e) {
+      setCurrentNumber("Error");
+    }
+  };
+
   const styles = StyleSheet.create({
     results: {
       backgroundColor: darkMode ? "#282f3b" : "#f5f5f5",
@@ -104,22 +140,21 @@ export default function App() {
       alignItems: "flex-end",
       justifyContent: "flex-end",
       borderRadius: 5,
+      padding: 10,
     },
     resultText: {
-      maxHeight: 45,
       color: "#00b9d6",
       margin: 15,
       fontSize: 35,
     },
     historyText: {
       color: darkMode ? "#B5B7BB" : "#7c7c7c",
-      fontsize: 20,
+      fontSize: 20,
       marginRight: 10,
       alignSelf: "flex-end",
     },
     themeButton: {
       alignSelf: "flex-start",
-      bottom: "5%",
       margin: 15,
       backgroundColor: darkMode ? "#7b8084" : "#e5e5e5",
       alignItems: "center",
@@ -128,124 +163,77 @@ export default function App() {
       height: 50,
       borderRadius: 25,
     },
+    wideButton: {
+      width: "46%",
+    },
     buttons: {
       width: "100%",
-      height: "35%",
       flexDirection: "row",
-      justifyContent: "space-between",
       flexWrap: "wrap",
+      justifyContent: "space-between",
+      padding: 10,
     },
     button: {
       backgroundColor: darkMode ? "#3f4d5b" : "#e5e5e5",
       alignItems: "center",
       justifyContent: "center",
-      width: "23%",
-      height: "25%",
-      flexDirection: "row",
-      marginVertical: 10,
-      borderRadius: 5,
+      width: "22%",
+      height: "15%",
+      marginVertical: 5,
+      borderRadius: 10,
     },
     textButton: {
       color: darkMode ? "#b5b7bb" : "#7c7c7c",
-      fontSize: 28,
+      fontSize: 25,
     },
   });
+
   return (
-    <View>
+    <View style={styles.container}>
       <View style={styles.results}>
-        <TouchableOpacity style={styles.themeButton}>
+        <TouchableOpacity
+          style={styles.themeButton}
+          onPress={() => setDarkMode(!darkMode)}
+        >
           <Entypo
             name={darkMode ? "light-up" : "moon"}
             size={24}
             color={darkMode ? "white" : "black"}
-            onPress={() => (darkMode ? setDarkMode(false) : setDarkMode(true))}
-          ></Entypo>
+          />
         </TouchableOpacity>
         <Text style={styles.historyText}>{lastNumber}</Text>
         <Text style={styles.resultText}>{currentNumber}</Text>
       </View>
       <View style={styles.buttons}>
-        {buttons.map((button) =>
-          button === "=" ||
-          button === "/" ||
-          button === "*" ||
-          button === "-" ||
-          button === "+" ? (
+        {buttons.map((button) => {
+          const isWideButton = button === "DEL" || button === "=";
+          const isTrigFunction = trigFunctions.includes(button);
+          const isOperator = operators.includes(button);
+
+          return (
             <TouchableOpacity
               key={button}
-              style={[styles.button, { backgroundColor: "#00b9d6" }]}
-              onPress={() => handlelnput(button)}
+              style={[
+                styles.button,
+                isWideButton ? styles.wideButton : null,
+                isTrigFunction ? { backgroundColor: "#d9a84e" } : null,
+                isOperator ? { backgroundColor: "#00b9d6" } : null,
+              ]}
+              onPress={() => handleInput(button)}
             >
               <Text
-                style={[styles.textButton, { color: "white", fontSize: 28 }]}
+                style={[
+                  styles.textButton,
+                  isWideButton ? { color: "white" } : null,
+                  isTrigFunction ? { color: "white" } : null,
+                  isOperator ? { color: "white" } : null,
+                ]}
               >
                 {button}
               </Text>
             </TouchableOpacity>
-          ) : button === "." || button === "DEL" ? (
-            <TouchableOpacity
-              key={button}
-              style={[
-                styles.button,
-                {
-                  backgroundColor:
-                    button === "."
-                      ? darkMode
-                        ? "#303946"
-                        : "#fff"
-                      : darkMode === true
-                      ? "#414853"
-                      : "#ededed",
-                  minWidth: "37%",
-                },
-              ]}
-              onPress={() => handlelnput(button)}
-            >
-              <Text style={[styles.textButton]}>{button}</Text>
-            </TouchableOpacity>
-          ) : button === "C" ? (
-            <TouchableOpacity
-              key={button}
-              style={[
-                styles.button,
-                {
-                  backgroundColor:
-                    typeof button === "number"
-                      ? darkMode
-                        ? "#303946"
-                        : "#fff"
-                      : darkMode === true
-                      ? "#414853"
-                      : "#ededed",
-                  minWidth: "36%",
-                },
-              ]}
-              onPress={() => handlelnput(button)}
-            >
-              <Text style={[styles.textButton]}>{button}</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              key={button}
-              style={[
-                styles.button,
-                {
-                  backgroundColor:
-                    typeof button === "number"
-                      ? darkMode
-                        ? "#303946"
-                        : "#fff"
-                      : darkMode === true
-                      ? "#414853"
-                      : "#ededed",
-                },
-              ]}
-              onPress={() => handlelnput(button)}
-            >
-              <Text style={[styles.textButton]}>{button}</Text>
-            </TouchableOpacity>
-          )
-        )}
+          );
+        })}
       </View>
     </View>
   );
